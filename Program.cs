@@ -5,31 +5,24 @@ using Microsoft.Data.Sqlite;
 using CodingTracker.Controllers;
 using CodingTracker.Helpers;
 using System.Runtime.CompilerServices;
+using CodingTracker.Models;
 
 public static class Program
 {
     public static void Main(string[] args)
     {
-        AnsiConsole.Markup("[underline red]Hello[/] World!\n");
-
         CodingController.createDB();
-
-        string age = UserInput.MainMenu();
-
-        Console.WriteLine(age);
-        
 
         bool quit = false;
 
         while (!quit)
         {
-            Console.WriteLine();
             // Ask for the user's favorite fruit
             var action = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("CODING TRACKER")
+                    .Title("[bold]CODING TRACKER[/]")
                     .PageSize(10)
-                    .MoreChoicesText("[grey](Move up and down to reveal more fruits)[/]")
+                    .MoreChoicesText("[grey](Move up and down to reveal more options)[/]")
                     .AddChoices(
                         new[] { "View Session History", "Add Coding Session", "Delete Coding Session",
                                 "Update Coding Session", "Exit Application" }
@@ -39,19 +32,68 @@ public static class Program
             switch (action)
             {
                 case "View Session History":
-                    AnsiConsole.WriteLine("Viewing session history...");
+                    var sessions = CodingController.getAllSessions();
+
+                    // Create a table
+                    var table = new Table();
+
+                    // Add some columns
+                    table.AddColumn("Id");
+                    table.AddColumn("Start Time");
+                    table.AddColumn("End Time");
+                    table.AddColumn("Duration");
+
+
+
+                    if (sessions != null)
+                    {
+                        foreach (var session in sessions)
+                        {
+                            table.AddRow(session.Id.ToString(), session.StartTime, session.EndTime, session.Duration.ToString() + " Minutes");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No sessions found.");
+                    }
+
+                    // Render the table to the console
+                    AnsiConsole.Write(table);
+
+                    AnsiConsole.WriteLine("Press any key to continue");
+                    AnsiConsole.Console.Input.ReadKey(false);
+
+                    Console.Clear();
+
                     break;
 
                 case "Add Coding Session":
-                    AnsiConsole.WriteLine("Adding a new coding session...");
+                    UserInput.InsertSessionPrompt();
+
+                    AnsiConsole.WriteLine("Press any key to continue");
+                    AnsiConsole.Console.Input.ReadKey(false);
+
+                    Console.Clear();
                     break;
 
                 case "Delete Coding Session":
-                    AnsiConsole.WriteLine("Deleting a coding session...");
+                    int id = UserInput.DeleteSessionPrompt();
+
+                    CodingController.deleteDB(id);
+
+                    AnsiConsole.WriteLine("Press any key to continue");
+                    AnsiConsole.Console.Input.ReadKey(false);
+
+                    Console.Clear();
                     break;
 
                 case "Update Coding Session":
-                    AnsiConsole.WriteLine("Updating a coding session...");
+                    UserInput.UpdateSessionPrompt();
+
+                    AnsiConsole.WriteLine("Press any key to continue");
+                    AnsiConsole.Console.Input.ReadKey(false);
+
+                    Console.Clear();
                     break;
 
                 case "Exit Application":
